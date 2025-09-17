@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WildShop — демо</title>
+  <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <!-- Header -->
+  <header class="bg-white shadow">
+    <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="text-2xl font-bold text-indigo-600">WildShop</div>
+        <div class="hidden md:block">
+          <input id="search" placeholder="Поиск по товарам" class="border rounded px-3 py-2 w-80">
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <nav class="hidden md:flex gap-3 text-sm">
+          <a href="#" class="py-2 px-3 rounded hover:bg-gray-100">Женщинам</a>
+          <a href="#" class="py-2 px-3 rounded hover:bg-gray-100">Мужчинам</a>
+          <a href="#" class="py-2 px-3 rounded hover:bg-gray-100">Детям</a>
+        </nav>
+        <div class="flex items-center gap-2">
+          <button class="relative">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4" />
+            </svg>
+            <span id="cart-count" class="hidden absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1"></span>
+          </button>
+          <button class="text-sm px-3 py-2 rounded border">Вход</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="container mx-auto px-4 py-6 flex gap-6">
+    <!-- Filters -->
+    <aside class="w-64 hidden lg:block">
+      <div class="bg-white p-4 rounded-2xl shadow">
+        <h3 class="text-lg font-semibold mb-3">Фильтры</h3>
+        <label class="block text-sm font-medium mb-2">Сортировка</label>
+        <select id="sort" class="w-full border rounded px-3 py-2">
+          <option value="popular">Популярное</option>
+          <option value="price_asc">Цена: по возрастанию</option>
+          <option value="price_desc">Цена: по убыванию</option>
+          <option value="rating">Рейтинг</option>
+        </select>
+      </div>
+    </aside>
+
+    <!-- Products -->
+    <section class="flex-1">
+      <div class="flex items-center justify-between mb-4">
+        <div id="count" class="text-sm text-gray-600">Найдено 0 товаров</div>
+      </div>
+      <div id="products" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </section>
+
+    <article class="bg-white p-4 rounded-2xl shadow hover:shadow-md transition-all w-60">
+  <img src="C:\Users\чикибрик\Downloads\бомбочка.jpg" 
+       alt="Бомбочка для ванны" 
+       class="w-full h-72 object-cover rounded-lg">
+  <h4 class="font-semibold text-sm mt-3">Бомбочка для ванны</h4>
+  <div class="text-xs text-gray-500">Organic Shop</div>
+  <div class="mt-2 flex items-center justify-between">
+    <div class="font-bold text-lg">250 ₽</div>
+    <div class="flex items-center gap-2">
+      <div class="text-sm text-yellow-600">★ 4.4</div>
+      <button class="px-3 py-1 rounded bg-indigo-600 text-white text-sm">В корзину</button>
+    </div>
+  </div>
+</article>
+
+    <!-- Cart -->
+    <aside class="w-80 hidden xl:block">
+      <div class="bg-white p-4 rounded-2xl shadow sticky top-6">
+        <h3 class="text-lg font-semibold mb-3">Корзина</h3>
+        <div id="cart" class="text-sm text-gray-500">Корзина пуста</div>
+        <div id="cart-total" class="text-sm font-semibold mt-3 hidden"></div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t py-4 mt-8">
+    <div class="container mx-auto px-4 text-sm text-gray-500">© <span id="year"></span> WildShop — демо</div>
+  </footer>
+
+  <!-- Script -->
+  <script>
+    const products = [
+      { id: 1, title: "Женские кроссовки Nimbus", price: 6599, brand: "Nike", rating: 4.7, img: "https://via.placeholder.com/300x300?text=Sneakers" },
+      { id: 2, title: "Мужская футболка Basic", price: 899, brand: "H&M", rating: 4.2, img: "https://via.placeholder.com/300x300?text=T-shirt" },
+      { id: 3, title: "Сумка через плечо", price: 2499, brand: "Zara", rating: 4.5, img: "https://via.placeholder.com/300x300?text=Bag" },
+      { id: 4, title: "Детский рюкзак", price: 1299, brand: "Reima", rating: 4.3, img: "https://via.placeholder.com/300x300?text=Backpack" },
+      { id: 5, title: "Бомбочка для ванны", price: 300, brand: "VitHouse", rating: 5.0, img: "https://via.placeholder.com/300x300?text=Bath+bomb" },
+    ];
+const cart = {};
+    const productsEl = document.getElementById('products');
+    const cartEl = document.getElementById('cart');
+    const countEl = document.getElementById('count');
+    const cartCountEl = document.getElementById('cart-count');
+
+    function formatPrice(n) {
+      return n.toLocaleString("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0 });
+    }
+
+    // вывод карточек
+    function renderProducts() {
+      productsEl.innerHTML = '';
+      products.forEach(p => {
+        const card = document.createElement('article');
+        card.className = 'bg-white p-4 rounded-2xl shadow hover:shadow-md transition-all';
+        Card.innerHTML = `
+  <img src=»${p.img}» alt=»${p.title}» class=»w-full h-48 object-cover rounded-lg»>
+  <h4 class=»font-semibold text-sm mt-3»>${p.title}</h4>
+  <div class=»text-xs text-gray-500»>${p.brand}</div>
+  <div class=»mt-2 flex items-center justify-between»>
+    <div class=»font-bold text-lg»>${formatPrice(p.price)}</div>
+    <div class=»flex items-center gap-2»>
+      <div class=»text-sm text-yellow-600»>★ ${p.rating}</div>
+      <button class=»px-3 py-1 rounded bg-indigo-600 text-white text-sm» onclick=»addToCart(${p.id})»>В корзину</button>
+    </div>
+  </div>
+`;
+        productsEl.appendChild(card);
+      });
+      countEl.textContent = `Найдено ${products.length} товаров`;
+    }
+
+    // вывод корзины
+    function renderCart() {
+      const items = Object.values(cart);
+      if (!items.length) {
+        cartEl.textContent = 'Корзина пуста';
+        cartCountEl.classList.add('hidden');
+        document.getElementById('cart-total').classList.add('hidden');
+        return;
+      }
+
+      cartEl.innerHTML = items.map(it => `
+  <div class="flex items-center gap-3 mb-2">
+    <img src="${it.img}" class="w-12 h-12 rounded">
+    <div class="flex-1">
+      <div class="text-sm">${it.title}</div>
+      <div class="text-xs text-gray-500">${it.qty} × ${formatPrice(it.price)}</div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="removeFromCart(${it.id})" class="px-2 py-1 bg-red-500 text-white text-xs rounded">−</button>
+      <button onclick="addToCart(${it.id})" class="px-2 py-1 bg-green-500 text-white text-xs rounded">+</button>
+    </div>
+  </div>
+`).join('');
+
+
+      // считаем количество и сумму
+      const totalCount = items.reduce((s, it) => s + it.qty, 0);
+      const totalPrice = items.reduce((s, it) => s + it.qty * it.price, 0);
+
+      cartCountEl.textContent = totalCount;
+      cartCountEl.classList.remove('hidden');
+
+      const totalEl = document.getElementById('cart-total');
+      totalEl.textContent = 'Итого: ${formatPrice(totalPrice)}';
+      totalEl.classList.remove('hidden');
+    }
+
+    // добавить товар
+    function addToCart(id) {
+      const product = products.find(p => p.id === id);
+      if (!product) return;
+      if (!cart[id]) cart[id] = { ...product, qty: 0 };
+      cart[id].qty++;
+      renderCart();
+    }
+
+    // удалить товар
+    function removeFromCart(id) {
+      if (!cart[id]) return;
+      cart[id].qty--;
+      if (cart[id].qty <= 0) {
+        delete cart[id];
+      }
+      renderCart();
+    }
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+    renderProducts();
+  </script>
+</body>
+</html>
